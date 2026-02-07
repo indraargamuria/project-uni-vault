@@ -7,6 +7,7 @@ import { html } from 'hono/html'
 import { eq, sql, gte, and, desc } from 'drizzle-orm'
 import { renderer } from './renderer'
 import { Login } from './pages/login'
+import { Register } from './pages/register'
 import { Dashboard } from './pages/dashboard'
 
 type Bindings = {
@@ -86,8 +87,26 @@ app.get('/', (c) => {
   `)
 })
 
-app.get('/login', (c) => {
+app.get('/login', async (c) => {
+  const auth = getAuth(c.env)
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers
+  })
+  if (session) {
+    return c.redirect('/dashboard')
+  }
   return c.render(Login(), { title: 'Login' })
+})
+
+app.get('/register', async (c) => {
+  const auth = getAuth(c.env)
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers
+  })
+  if (session) {
+    return c.redirect('/dashboard')
+  }
+  return c.render(Register(), { title: 'Register' })
 })
 
 app.get('/dashboard', async (c) => {

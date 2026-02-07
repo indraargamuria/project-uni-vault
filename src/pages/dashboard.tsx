@@ -18,10 +18,51 @@ export const Dashboard = (props: {
     const { isApproved, activityFeed } = props;
 
     return html`
-    <div class="flex flex-col md:flex-row gap-8 min-h-[calc(100vh-100px)]">
+    <div class="flex flex-col min-h-screen">
+      <!-- Top Bar / Header -->
+      <header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-14 items-center gap-4">
+            <div class="mr-4 flex">
+                <a class="mr-6 flex items-center space-x-2 font-bold" href="#">
+                    <span>Uni-Vault</span>
+                </a>
+            </div>
+            
+            <div class="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+                <div class="w-full flex-1 md:w-auto md:flex-none">
+                     <!-- Search could go here globally later -->
+                </div>
+                <!-- User Nav -->
+                <div class="flex items-center gap-4">
+                    <div class="flex flex-col text-right hidden sm:block">
+                        <span class="text-sm font-medium">${props.user.name}</span>
+                        <span class="text-xs text-muted-foreground capitalize">${props.user.role}</span>
+                    </div>
+                    <div class="relative inline-block text-left group">
+                         <button class="flex items-center gap-2 rounded-full bg-secondary p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                             <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                                 ${props.user.name.charAt(0).toUpperCase()}
+                             </div>
+                         </button>
+                         <!-- Dropdown Menu -->
+                         <div class="absolute right-0 mt-2 w-56 origin-top-right rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-80 hidden group-hover:block focus-within:block" role="menu">
+                            <div class="p-2">
+                                <p class="text-xs font-medium text-muted-foreground px-2 py-1.5">${props.user.email}</p>
+                                <div class="h-px bg-muted my-1"></div>
+                                <button onclick="fetch('/api/auth/sign-out', { method: 'POST' }).then(() => window.location.href = '/login')" class="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-destructive/10 hover:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50 font-medium">
+                                    Log out
+                                </button>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </header>
+
+    <div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 pt-6">
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 flex-shrink-0 space-y-6 hidden md:block">
-         <!-- Mobile Toggle could go here, omitting for MVP simplicity -->
+      <aside class="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
          <div class="space-y-4">
              <div class="py-2">
                  <h2 class="mb-2 px-2 text-lg font-semibold tracking-tight">Library</h2>
@@ -47,7 +88,7 @@ export const Dashboard = (props: {
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 space-y-8">
+      <main class="flex-1 space-y-8 pb-8">
       
       <!-- Breadcrumb -->
       <nav class="flex text-sm text-muted-foreground" aria-label="Breadcrumb">
@@ -174,21 +215,21 @@ export const Dashboard = (props: {
                     </div>
                 </div>
             </div>
-        <div class="flex items-center p-6 pt-0">
-            ${isApproved ? html`
-             <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ml-auto">
-                Upload File
-             </button>
-            ` : html`
-             <button disabled class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-muted text-muted-foreground h-9 px-4 py-2 ml-auto cursor-not-allowed">
-                Upload Locked
-             </button>
-            `}
-        </div>
-        <div class="p-6 pt-0">
-          ${props.files && props.files.length > 0 ? html`
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              ${props.files.map(f => {
+            <div class="flex items-center p-6 pt-0">
+                ${isApproved ? html`
+                 <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ml-auto">
+                    Upload File
+                 </button>
+                ` : html`
+                 <button disabled class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-muted text-muted-foreground h-9 px-4 py-2 ml-auto cursor-not-allowed">
+                    Upload Locked
+                 </button>
+                `}
+            </div>
+            <div class="p-6 pt-0">
+              ${props.files && props.files.length > 0 ? html`
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  ${props.files.map(f => {
         let icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-blue-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`;
         let bgColor = 'bg-blue-50 dark:bg-blue-950/20';
 
@@ -204,127 +245,82 @@ export const Dashboard = (props: {
         }
 
         return html`
-                  <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
-                    <div class="flex flex-col space-y-1.5 p-6 pb-2">
-                        <div class="flex items-center justify-between mb-2">
-                             <div class="${bgColor} p-2 rounded-lg">
-                                ${icon}
-                             </div>
-                             <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                                ${f.category || 'General'}
-                             </span>
+                        <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+                            <div class="flex flex-col space-y-1.5 p-6 pb-2">
+                                <div class="flex items-center justify-between mb-2">
+                                        <div class="${bgColor} p-2 rounded-lg">
+                                        ${icon}
+                                        </div>
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                                        ${f.category || 'General'}
+                                        </span>
+                                </div>
+                                <h3 class="font-semibold tracking-tight text-lg line-clamp-1" title="${f.name}">${f.name}</h3>
+                                <p class="text-xs text-muted-foreground">${f.subject || 'No Subject'}</p>
+                            </div>
+                                <div class="p-6 pt-2">
+                                <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                                    <span>${(f.size / 1024).toFixed(1)} KB</span>
+                                    <span>${new Date(f.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 w-full">
+                                    Download
+                                </a>
+                                </div>
                         </div>
-                        <h3 class="font-semibold tracking-tight text-lg line-clamp-1" title="${f.name}">${f.name}</h3>
-                        <p class="text-xs text-muted-foreground">${f.subject || 'No Subject'}</p>
-                    </div>
-                     <div class="p-6 pt-2">
-                        <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                            <span>${(f.size / 1024).toFixed(1)} KB</span>
-                            <span>${new Date(f.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 w-full">
-                           Download
-                        </a>
-                     </div>
-                  </div>
-                `
+                    `
     })}
-            <div id="empty-search-state" class="hidden col-span-full flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-               <p>No matches found.</p>
+                </div>
+                <div id="empty-search-state" class="hidden flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                    <p>No matches found.</p>
+                </div>
+              ` : html`
+                <div class="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 mb-4 opacity-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
+                   <p>No files in the vault.</p>
+                </div>
+              `}
             </div>
-            </div>
-          ` : html`
-            <div class="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 mb-4 opacity-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
-               <p>No files in the vault.</p>
-            </div>
-          `}
         </div>
-       </div>
-     </div>
-
-     <!-- Activity Feed (1 col) -->
-      <div class="lg:col-span-1 space-y-4">
-         <div class="rounded-xl border bg-card text-card-foreground shadow h-full">
-            <div class="flex flex-col space-y-1.5 p-6">
-                <h3 class="font-semibold leading-none tracking-tight">Recent Activity</h3>
-                <p class="text-sm text-muted-foreground">Latest updates in the vault.</p>
-            </div>
-            <div class="p-6 pt-0">
-                <div class="space-y-4">
-                    ${activityFeed && activityFeed.length > 0 ? activityFeed.map(log => {
+        
+        <!-- Activity Feed (1 col) -->
+         <div class="lg:col-span-1 space-y-4">
+            <div class="rounded-xl border bg-card text-card-foreground shadow h-full">
+               <div class="flex flex-col space-y-1.5 p-6">
+                   <h3 class="font-semibold leading-none tracking-tight">Recent Activity</h3>
+                   <p class="text-sm text-muted-foreground">Latest updates in the vault.</p>
+               </div>
+               <div class="p-6 pt-0">
+                   <div class="space-y-4">
+                       ${activityFeed && activityFeed.length > 0 ? activityFeed.map(log => {
         const isUpload = log.action === 'upload';
         return html`
-                            <div class="flex items-start gap-4">
-                                <span class="relative flex h-2 w-2 shrink-0 overflow-hidden rounded-full mt-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isUpload ? 'bg-blue-400 opacity-75' : 'bg-green-400 opacity-75'}"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 ${isUpload ? 'bg-blue-500' : 'bg-green-500'}"></span>
-                                </span>
-                                <div class="space-y-1">
-                                    <p class="text-sm font-medium leading-none">
-                                        <span class="font-semibold">${log.userName || 'Someone'}</span>
-                                        ${isUpload ? 'uploaded' : 'downloaded'}
-                                    </p>
-                                    <p class="text-xs text-muted-foreground line-clamp-1" title="${log.fileName}">${log.fileName}</p>
-                                    <p class="text-[10px] text-muted-foreground">${new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                </div>
-                            </div>
-                        `
+                               <div class="flex items-start gap-4">
+                                   <span class="relative flex h-2 w-2 shrink-0 overflow-hidden rounded-full mt-2">
+                                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isUpload ? 'bg-blue-400 opacity-75' : 'bg-green-400 opacity-75'}"></span>
+                                       <span class="relative inline-flex rounded-full h-2 w-2 ${isUpload ? 'bg-blue-500' : 'bg-green-500'}"></span>
+                                   </span>
+                                   <div class="space-y-1">
+                                       <p class="text-sm font-medium leading-none">
+                                           <span class="font-semibold">${log.userName || 'Someone'}</span>
+                                           ${isUpload ? 'uploaded' : 'downloaded'}
+                                       </p>
+                                       <p class="text-xs text-muted-foreground line-clamp-1" title="${log.fileName}">${log.fileName}</p>
+                                       <p class="text-[10px] text-muted-foreground">${new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                   </div>
+                               </div>
+                           `
     }) : html`<p class="text-sm text-muted-foreground">No recent activity.</p>`}
-                </div>
+                   </div>
+               </div>
             </div>
          </div>
+         
       </div>
 
-     </div>
      </main>
     </div>
-
-    <script>
-      // Search Logic
-      const searchInput = document.getElementById('search-input');
-      // We need to target the card wrappers. The file cards are inside the grid.
-      // selector: .grid > .group
-      
-      searchInput.addEventListener('input', (e) => {
-          const term = e.target.value.toLowerCase();
-          const fileCards = document.querySelectorAll('.group.relative'); 
-          
-          fileCards.forEach(card => {
-              const name = card.querySelector('h3').textContent.toLowerCase();
-              const subject = card.querySelector('p').textContent.toLowerCase(); 
-              
-              if (name.includes(term) || subject.includes(term)) {
-                  card.parentElement.style.display = '';
-                  card.style.display = '';
-// ... Inside the map loop
-// Actually better to add it after the map expression but before the closing div of the grid.
-// Let's modify the map block to include it or append it.
-
-// Replacement strategy: Locate the end of the map.
-// The code has:
-// ...
-// })}
-// </div>
-
-// I will target the end of the map and insert the empty state div.
-// Then update the script.
-
-// Let's replace the script block first as it is easier to target.
-              } else {
-                  card.style.display = 'none';
-              }
-          });
-          
-          const visibleCount = Array.from(fileCards).filter(c => c.style.display !== 'none').length;
-          const emptyState = document.getElementById('empty-search-state');
-          if (emptyState) {
-              emptyState.classList.toggle('hidden', visibleCount > 0);
-          }
-      });
-      
-      // Initial check (in case we want to support pre-filtering later, though unnecessary now)
-    </script>
+    </div> <!-- Close min-h-screen -->
 
     <!-- Upload Modal -->
     <div id="upload-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -368,47 +364,58 @@ export const Dashboard = (props: {
     <script>
       // Search Logic
       const searchInput = document.getElementById('search-input');
-      const fileCards = document.querySelectorAll('.group.relative'); // Select file cards
       
-      searchInput.addEventListener('input', (e) => {
-          const term = e.target.value.toLowerCase();
-          
-          fileCards.forEach(card => {
-              const name = card.querySelector('h3').textContent.toLowerCase();
-              const subject = card.querySelector('p').textContent.toLowerCase(); // Subject is in the first p tag under h3
+      if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+              const term = e.target.value.toLowerCase();
+              const fileCards = document.querySelectorAll('.group.relative'); 
               
-              if (name.includes(term) || subject.includes(term)) {
-                  card.parentElement.classList.remove('hidden'); // Ensure parent wrapper is visible if filtering logic hides entries (grid items are usually direct children though)
-                  card.style.display = '';
-              } else {
-                  card.style.display = 'none';
+              fileCards.forEach(card => {
+                  const name = card.querySelector('h3') ? card.querySelector('h3').textContent.toLowerCase() : '';
+                  const subject = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+                  
+                  if (name.includes(term) || subject.includes(term)) {
+                      card.parentElement.style.display = ''; 
+                      card.style.display = '';
+                  } else {
+                      card.style.display = 'none';
+                  }
+              });
+              
+              const visibleCount = Array.from(fileCards).filter(c => c.style.display !== 'none').length;
+              const emptyState = document.getElementById('empty-search-state');
+              if (emptyState) {
+                  emptyState.classList.toggle('hidden', visibleCount > 0);
               }
           });
-      });
+      }
 
       // Upload Form Handler
-      document.getElementById('upload-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        
-        try {
-            const res = await fetch('/api/files/upload', {
-                method: 'POST',
-                body: formData
-            });
+      const uploadForm = document.getElementById('upload-form');
+      if (uploadForm) {
+          uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
             
-            if (res.ok) {
-                alert('File uploaded successfully!');
-                window.location.reload();
-            } else {
-                const data = await res.json();
-                alert('Upload failed: ' + data.message);
+            try {
+                const res = await fetch('/api/files/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    alert('File uploaded successfully!');
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    alert('Upload failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred during upload.');
             }
-        } catch (error) {
-            console.error(error);
-            alert('An error occurred during upload.');
-        }
-      });
+          });
+      }
 
       async function approveUser(email) {
         if (!confirm('Approve ' + email + '?')) return;

@@ -22,6 +22,10 @@ export const Register = () => html`
             <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="password">Password</label>
             <input class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" id="password" required type="password" name="password">
           </div>
+          <div class="grid gap-2 mt-2">
+            <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="confirm-password">Confirm Password</label>
+            <input class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" id="confirm-password" required type="password" name="confirmPassword">
+          </div>
           <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 w-full mt-4" type="submit">Sign Up</button>
         </form>
         
@@ -40,7 +44,14 @@ export const Register = () => html`
       const name = document.getElementById('name').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
       const errorDiv = document.getElementById('error-message');
+      
+      if (password !== confirmPassword) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.classList.remove('hidden');
+            return;
+      }
       
       try {
         const res = await fetch('/api/auth/sign-up/email', {
@@ -50,7 +61,24 @@ export const Register = () => html`
         });
 
         if (res.ok) {
-          window.location.href = '/dashboard';
+           // Show success state
+           document.getElementById('register-form').classList.add('hidden');
+           document.querySelector('.text-center.text-sm').classList.add('hidden'); // Hide login link
+           
+           const successDiv = document.createElement('div');
+           successDiv.className = "flex flex-col items-center justify-center space-y-4 py-6 text-center";
+           successDiv.innerHTML = \`
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+             <h3 class="text-xl font-semibold">Registration Successful!</h3>
+             <p class="text-muted-foreground text-sm max-w-xs">Your account is pending admin approval. You can login to check your status.</p>
+             <a href="/login" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 mt-2">
+                Go to Login
+             </a>
+           \`;
+           document.querySelector('.p-6.pt-0').appendChild(successDiv);
+
         } else {
           const data = await res.json();
           errorDiv.textContent = data.message || 'Registration failed';
