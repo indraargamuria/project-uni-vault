@@ -3,7 +3,7 @@ import { html } from 'hono/html'
 
 export const Header = (props: { user: any }) => html`
   <header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div class="container flex h-14 items-center gap-4 px-4 mx-auto max-w-screen-xl">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-14 items-center gap-4">
             <div class="mr-4 flex">
                 <a class="mr-6 flex items-center space-x-2 font-bold" href="#">
                     <span>Uni-Vault</span>
@@ -43,6 +43,9 @@ export const Header = (props: { user: any }) => html`
       </header>
       <script>
         document.getElementById('logout-btn').addEventListener('click', async () => {
+            // clear client-side storage to be safe
+            localStorage.clear();
+            sessionStorage.clear();
             try {
                 await fetch('/api/auth/sign-out', { 
                     method: 'POST',
@@ -50,11 +53,11 @@ export const Header = (props: { user: any }) => html`
                         'Content-Type': 'application/json'
                     }
                 });
-                window.location.href = '/login';
             } catch (e) {
                 console.error(e);
-                window.location.href = '/login';
             }
+            // Force a full refresh to the login page to break any state
+            window.location.replace('/login');
         });
       </script>
 `
