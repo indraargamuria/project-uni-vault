@@ -2,7 +2,7 @@
 import { Hono } from 'hono'
 import { getAuth } from './lib/auth'
 import { drizzle } from 'drizzle-orm/d1'
-import { user, files } from './db/schema'
+import { user, files, activityLogs } from './db/schema'
 import { html } from 'hono/html'
 import { eq } from 'drizzle-orm'
 import { renderer } from './renderer'
@@ -128,6 +128,7 @@ app.post('/api/files/upload', async (c) => {
   const formData = await c.req.parseBody()
   const file = formData['file']
   const category = formData['category'] as string || 'General'
+  const subject = formData['subject'] as string || null
 
   if (!file || !(file instanceof File)) {
     return c.json({ message: 'No file uploaded or invalid file' }, 400)
@@ -148,9 +149,20 @@ app.post('/api/files/upload', async (c) => {
     size: file.size,
     type: file.type,
     category: category,
+    subject: subject,
+    uploadedBy: session.user.name,
     userId: session.user.id,
     createdAt: new Date()
   }).returning().get()
+
+  // Log activity
+  await db.insert(activityLogs).values({
+    id: crypto.randomUUID(),
+    userId: session.user.id,
+    action: 'upload',
+    fileName: file.name,
+    createdAt: new Date()
+  })
 
   return c.json({ message: 'File uploaded successfully', file: newFile })
 })
@@ -195,6 +207,15 @@ app.get('/api/files/download/:fileId', async (c) => {
   if (!fileRecord) {
     return c.json({ message: 'File record not found' }, 404)
   }
+
+  // Log activity
+  await db.insert(activityLogs).values({
+    id: crypto.randomUUID(),
+    userId: session.user.id,
+    action: 'download',
+    fileName: fileRecord.name,
+    createdAt: new Date()
+  })
 
   const object = await c.env.BUCKET.get(fileRecord.key)
 

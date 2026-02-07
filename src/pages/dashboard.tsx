@@ -70,6 +70,11 @@ export const Dashboard = (props: {
           <h3 class="font-semibold leading-none tracking-tight">Files</h3>
           <p class="text-sm text-muted-foreground">Access your learning materials.</p>
         </div>
+        <div class="flex items-center p-6 pt-0">
+             <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ml-auto">
+                Upload File
+             </button>
+        </div>
         <div class="p-6 pt-0">
           ${props.files && props.files.length > 0 ? html`
             <div class="relative w-full overflow-auto">
@@ -77,9 +82,11 @@ export const Dashboard = (props: {
                 <thead class="[&_tr]:border-b">
                   <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                     <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Name</th>
+                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Subject</th>
                     <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Category</th>
                     <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Type</th>
                     <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Size</th>
+                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Uploaded By</th>
                     <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-right">Download</th>
                   </tr>
                 </thead>
@@ -87,9 +94,11 @@ export const Dashboard = (props: {
                   ${props.files.map(f => html`
                     <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                       <td class="p-2 align-middle font-medium">${f.name}</td>
+                      <td class="p-2 align-middle text-muted-foreground">${f.subject || '-'}</td>
                       <td class="p-2 align-middle"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">${f.category || 'General'}</span></td>
                       <td class="p-2 align-middle text-muted-foreground">${f.type}</td>
                       <td class="p-2 align-middle text-muted-foreground">${(f.size / 1024).toFixed(1)} KB</td>
+                      <td class="p-2 align-middle text-muted-foreground">${f.uploadedBy || 'Unknown'}</td>
                       <td class="p-2 align-middle text-right">
                         <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
@@ -110,7 +119,70 @@ export const Dashboard = (props: {
       </div>
     </div>
 
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+        <div class="bg-card text-card-foreground rounded-xl border shadow-lg max-w-lg w-full p-6 space-y-4">
+            <div class="flex flex-col space-y-1.5 text-center sm:text-left">
+                <h3 class="text-lg font-semibold leading-none tracking-tight">Upload File</h3>
+                <p class="text-sm text-muted-foreground">Add a new document to the vault.</p>
+            </div>
+            
+            <form id="upload-form" class="space-y-4">
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium leading-none" for="file-upload">File</label>
+                    <input id="file-upload" type="file" name="file" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium leading-none" for="subject">Subject</label>
+                    <input id="subject" name="subject" placeholder="e.g. Calculus I" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+                 <div class="grid gap-2">
+                    <label class="text-sm font-medium leading-none" for="category">Category</label>
+                    <select id="category" name="category" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                        <option value="General">General</option>
+                        <option value="Assignment">Assignment</option>
+                        <option value="Lecture Notes">Lecture Notes</option>
+                        <option value="Exam Paper">Exam Paper</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('upload-modal').classList.add('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-4 py-2">
+                        Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+      // Upload Form Handler
+      document.getElementById('upload-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        try {
+            const res = await fetch('/api/files/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (res.ok) {
+                alert('File uploaded successfully!');
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                alert('Upload failed: ' + data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred during upload.');
+        }
+      });
+
       async function approveUser(email) {
         if (!confirm('Approve ' + email + '?')) return;
         

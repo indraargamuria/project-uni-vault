@@ -55,7 +55,17 @@ export const files = sqliteTable("files", {
     key: text("key").notNull(),
     size: integer("size").notNull(),
     type: text("type").notNull(),
-    category: text("category"),
+    category: text("category").notNull(),
+    subject: text("subject"),
+    uploadedBy: text("uploaded_by").notNull(),
     userId: text("user_id").notNull().references(() => user.id),
+    createdAt: integer("created_at", { mode: 'timestamp' }).notNull()
+});
+
+export const activityLogs = sqliteTable("activity_logs", {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id),
+    action: text("action").notNull(),
+    fileName: text("file_name").notNull(),
     createdAt: integer("created_at", { mode: 'timestamp' }).notNull()
 });
