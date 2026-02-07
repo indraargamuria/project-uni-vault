@@ -4,7 +4,7 @@ import { getAuth } from './lib/auth'
 import { drizzle } from 'drizzle-orm/d1'
 import { user, files, activityLogs } from './db/schema'
 import { html } from 'hono/html'
-import { eq } from 'drizzle-orm'
+import { eq, sql, gte, and, desc } from 'drizzle-orm'
 import { renderer } from './renderer'
 import { Login } from './pages/login'
 import { Dashboard } from './pages/dashboard'
@@ -33,7 +33,12 @@ app.use('/api/*', async (c, next) => {
     return c.json({ message: 'Unauthorized' }, 401)
   }
 
-  if (session.user.status !== 'approved') {
+  // Allow 'pending' users for dashboard to show locked state, but block specific API actions if needed.
+  // The logic below originally blocked everything. We want dashboard access for pending users.
+  // We will keep API routes protected but relax this global middleware or handle specific routes.
+  // For now, let's allow GET requests to proceed so dashboard renders, but block sensitive mutations.
+
+  if (session.user.status !== 'approved' && c.req.method !== 'GET' && !c.req.path.startsWith('/api/auth')) {
     return c.json({ message: 'Forbidden: Account not approved' }, 403)
   }
 
@@ -97,8 +102,45 @@ app.get('/dashboard', async (c) => {
 
   const db = drizzle(c.env.uni_vault_db)
 
-  // Fetch files (all files for MVP, can be scoped to user if needed, but requirements imply shared vault)
-  const allFiles = await db.select().from(files).all()
+  const isApproved = session.user.status === 'approved'
+
+  // Dashboard Stats
+  const totalFilesRes = await db.select({ count: sql<number>`count(*)` }).from(files).get()
+  const totalFiles = totalFilesRes?.count || 0
+
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const vaultGrowthRes = await db.select({ count: sql<number>`count(*)` }).from(activityLogs)
+    .where(and(eq(activityLogs.action, 'upload'), gte(activityLogs.createdAt, sevenDaysAgo))).get()
+  const vaultGrowth = vaultGrowthRes?.count || 0
+
+  const userActivityRes = await db.select({ count: sql<number>`count(*)` }).from(activityLogs)
+    .where(eq(activityLogs.userId, session.user.id)).get()
+  const userActivity = userActivityRes?.count || 0
+
+  // Sidebar Data (Categories & Subjects)
+  // D1 might not support distinct on multiple columns easily, so we fetch standard list and process in JS for MVP
+  // Ideally: SELECT DISTINCT category, subject FROM files
+  const allFilesMetadata = await db.select({ category: files.category, subject: files.subject }).from(files).all()
+
+  const navigation = allFilesMetadata.reduce((acc: any, curr) => {
+    const cat = curr.category || 'General'
+    const sub = curr.subject || 'Misc'
+    if (!acc[cat]) acc[cat] = new Set()
+    acc[cat].add(sub)
+    return acc
+  }, {})
+
+  // Convert Sets to Arrays for passing to view
+  for (const key in navigation) {
+    navigation[key] = Array.from(navigation[key])
+  }
+
+  // Fetch files (Only if approved)
+  let allFiles: any[] = []
+  if (isApproved) {
+    allFiles = await db.select().from(files).orderBy(desc(files.createdAt)).all()
+  }
 
   // Fetch pending users if admin
   let pendingUsers: any[] = []
@@ -109,7 +151,14 @@ app.get('/dashboard', async (c) => {
   return c.render(Dashboard({
     user: session.user,
     files: allFiles,
-    pendingUsers: pendingUsers
+    pendingUsers: pendingUsers,
+    stats: {
+      totalFiles,
+      vaultGrowth,
+      userActivity
+    },
+    navigation,
+    isApproved
   }), { title: 'Dashboard' })
 })
 

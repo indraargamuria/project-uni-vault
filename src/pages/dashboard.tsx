@@ -4,23 +4,97 @@ import { html } from 'hono/html'
 export const Dashboard = (props: {
     user: any,
     files: any[],
-    pendingUsers?: any[]
+    pendingUsers?: any[],
+    stats: {
+        totalFiles: number,
+        vaultGrowth: number,
+        userActivity: number
+    },
+    navigation: Record<string, string[]>,
+    isApproved: boolean
 }) => {
     const isAdmin = props.user.role === 'admin';
+    const { isApproved } = props;
 
     return html`
-    <div class="space-y-8">
-      <!-- Header -->
+    <div class="flex flex-col md:flex-row gap-8 min-h-[calc(100vh-100px)]">
+      <!-- Sidebar -->
+      <aside class="w-full md:w-64 flex-shrink-0 space-y-6">
+         <!-- Mobile Toggle could go here, omitting for MVP simplicity -->
+         <div class="space-y-4">
+             <div class="py-2">
+                 <h2 class="mb-2 px-2 text-lg font-semibold tracking-tight">Library</h2>
+                 <div class="space-y-1">
+                     ${Object.entries(props.navigation).map(([category, subjects]) => html`
+                        <div class="space-y-1">
+                            <button class="w-full text-left px-2 py-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                                ${category}
+                            </button>
+                            <div class="ml-4 border-l pl-4 space-y-1">
+                                ${subjects.map(subject => html`
+                                    <a href="#" class="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                                        ${subject}
+                                    </a>
+                                `)}
+                            </div>
+                        </div>
+                     `)}
+                     ${Object.keys(props.navigation).length === 0 ? html`<p class="px-2 text-sm text-muted-foreground">No categories yet.</p>` : ''}
+                 </div>
+             </div>
+         </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 space-y-8">
+      
+      <!-- Account Status Banner -->
+      ${!isApproved ? html`
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200" role="alert">
+            <div class="flex items-center gap-4">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+               <div>
+                  <h5 class="font-medium leading-none tracking-tight">Access Pending</h5>
+                  <div class="text-sm opacity-90 mt-1">Your account is awaiting approval from admin (Arga). You will be able to view and download files once approved.</div>
+               </div>
+            </div>
+        </div>
+      ` : ''}
+
+      <!-- Header & Stats -->
       <div class="flex items-center justify-between space-y-2">
         <div>
-          <h2 class="text-3xl font-bold tracking-tight">The Vault</h2>
-          <p class="text-muted-foreground">Manage your university documents.</p>
+          <h2 class="text-3xl font-bold tracking-tight">Dashboard</h2>
         </div>
-        <div class="flex items-center space-x-2">
-          <span class="text-sm font-medium mr-4">Logged in as ${props.user.name} (${props.user.role})</span>
-          <button onclick="fetch('/api/auth/sign-out', { method: 'POST' }).then(() => window.location.href = '/login')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
-             Sign Out
-          </button>
+      </div>
+      
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="tracking-tight text-sm font-medium">Total Files</h3>
+            </div>
+            <div class="p-6 pt-0">
+                <div class="text-2xl font-bold">${isApproved ? props.stats.totalFiles : '-'}</div>
+                <p class="text-xs text-muted-foreground">In the vault</p>
+            </div>
+        </div>
+        <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="tracking-tight text-sm font-medium">Vault Growth</h3>
+            </div>
+            <div class="p-6 pt-0">
+                 <div class="text-2xl font-bold">${isApproved ? '+' + props.stats.vaultGrowth : '-'}</div>
+                <p class="text-xs text-muted-foreground">New files (7 days)</p>
+            </div>
+        </div>
+        <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="tracking-tight text-sm font-medium">Your Activity</h3>
+            </div>
+            <div class="p-6 pt-0">
+                 <div class="text-2xl font-bold">${isApproved ? props.stats.userActivity : '-'}</div>
+                <p class="text-xs text-muted-foreground">Uploads & Downloads</p>
+            </div>
         </div>
       </div>
 
@@ -71,9 +145,15 @@ export const Dashboard = (props: {
           <p class="text-sm text-muted-foreground">Access your learning materials.</p>
         </div>
         <div class="flex items-center p-6 pt-0">
+            ${isApproved ? html`
              <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ml-auto">
                 Upload File
              </button>
+            ` : html`
+             <button disabled class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-muted text-muted-foreground h-9 px-4 py-2 ml-auto cursor-not-allowed">
+                Upload Locked
+             </button>
+            `}
         </div>
         <div class="p-6 pt-0">
           ${props.files && props.files.length > 0 ? html`
@@ -117,6 +197,11 @@ export const Dashboard = (props: {
           `}
         </div>
       </div>
+    </div>
+
+        </div>
+      </div>
+     </main>
     </div>
 
     <!-- Upload Modal -->
@@ -187,17 +272,6 @@ export const Dashboard = (props: {
         if (!confirm('Approve ' + email + '?')) return;
         
         try {
-            // Note: In a real app we wouldn't expose the ADMIN_SECRET here or rely on it client-side.
-            // However, the current backend implementation requires X-Admin-Secret header.
-            // As this is an MVP using client-side fetch in current architecture:
-            // Ideally backend session should authorize this, not a header secret for a "logged in admin".
-            // **Correction**: Milestone 7 refactored backend to check header. 
-            // BUT a logged in admin (session) should just be able to post.
-            // Since we can't easily inject the secret here without leaking it,
-            // we should likely update the backend to allow session-based approval OR prompt for secret.
-            // For this UI MVP, I will prompt for it or assume session authorization is enough (if backend supports it).
-            // Let's prompt for the secret as a fallback to ensure it works with existing backend logic.
-            
             const secret = prompt('Please enter the Admin Secret to confirm:');
             if (!secret) return;
 
