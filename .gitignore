@@ -1,0 +1,14 @@
+
+node_modules
+.dev.vars
+.wrangler
+dist
+*.txt
+*.json
+!package.json
+!tsconfig.json
+!wrangler.jsonc
+!README.md
+!agent_log/**/*.md
+!prompt_execute/**/*.md
+prompt_execute/*.json
