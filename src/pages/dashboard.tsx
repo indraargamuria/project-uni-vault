@@ -18,6 +18,46 @@ export const Dashboard = (props: {
     const isAdmin = props.user.role === 'admin';
     const { isApproved, activityFeed } = props;
 
+    const groupedFiles: Record<string, Record<string, any[]>> = {};
+    if (props.files) {
+        props.files.forEach(file => {
+            const cat = file.category || 'General';
+            const sub = file.subject || 'Miscellaneous';
+            if (!groupedFiles[cat]) groupedFiles[cat] = {};
+            if (!groupedFiles[cat][sub]) groupedFiles[cat][sub] = [];
+            groupedFiles[cat][sub].push(file);
+        });
+    }
+
+    const sidebarContent = html`
+        <div class="space-y-4 py-4">
+            <div class="px-3 py-2">
+                <h2 class="mb-2 px-4 text-lg font-semibold tracking-tight">Library</h2>
+                <div class="space-y-1">
+                    <button onclick="filterFiles('all', 'all')" class="w-full text-left px-4 py-2 text-sm font-medium rounded-md transition-colors bg-secondary text-secondary-foreground filter-btn" data-cat="all" data-sub="all">
+                        All Files
+                    </button> 
+                    ${Object.entries(groupedFiles).map(([category, subjects]) => html`
+                        <details class="group space-y-1" open>
+                            <summary class="flex w-full items-center justify-between rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer select-none">
+                                ${category}
+                                <svg class="h-4 w-4 transition-transform duration-200 group-open:rotate-90" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </summary>
+                            <div class="ml-4 border-l pl-2 space-y-1 pt-1">
+                                ${Object.keys(subjects).map(subject => html`
+                                    <button onclick="filterFiles('${category}', '${subject}')" class="w-full text-left px-4 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors filter-btn" data-cat="${category}" data-sub="${subject}">
+                                        ${subject}
+                                    </button>
+                                `)}
+                            </div>
+                        </details>
+                    `)}
+                    ${Object.keys(groupedFiles).length === 0 ? html`<p class="px-4 text-sm text-muted-foreground">No files found.</p>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
     return html`
     <div class="flex flex-col min-h-screen">
       <!-- Top Bar / Header -->
@@ -26,28 +66,7 @@ export const Dashboard = (props: {
     <div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 py-8 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <!-- Sidebar -->
       <aside class="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
-         <div class="space-y-4">
-             <div class="py-2">
-                 <h2 class="mb-2 px-2 text-lg font-semibold tracking-tight">Library</h2>
-                 <div class="space-y-1">
-                     ${Object.entries(props.navigation).map(([category, subjects]) => html`
-                        <div class="space-y-1">
-                            <button class="w-full text-left px-2 py-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                ${category}
-                            </button>
-                            <div class="ml-4 border-l pl-4 space-y-1">
-                                ${subjects.map(subject => html`
-                                    <a href="#" class="block text-sm text-muted-foreground hover:text-primary transition-colors">
-                                        ${subject}
-                                    </a>
-                                `)}
-                            </div>
-                        </div>
-                     `)}
-                     ${Object.keys(props.navigation).length === 0 ? html`<p class="px-2 text-sm text-muted-foreground">No categories yet.</p>` : ''}
-                 </div>
-             </div>
-         </div>
+         ${sidebarContent}
       </aside>
 
       <!-- Main Content -->
@@ -208,7 +227,7 @@ export const Dashboard = (props: {
         }
 
         return html`
-                        <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+                        <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer file-card" data-cat="${f.category || 'General'}" data-sub="${f.subject || 'Miscellaneous'}">
                             <div class="flex flex-col space-y-1.5 p-6 pb-2">
                                 <div class="flex items-center justify-between mb-2">
                                         <div class="${bgColor} p-2 rounded-lg">
@@ -324,21 +343,107 @@ export const Dashboard = (props: {
         </div>
     </div>
 
+    <!-- Mobile Drawer -->
+    <div id="mobile-drawer-overlay" class="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-all duration-100 ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in hidden" onclick="toggleMobileMenu()"></div>
+    <div id="mobile-drawer" class="fixed inset-y-0 left-0 z-50 h-full w-3/4 gap-4 border-r bg-background p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm hidden">
+        <div class="flex flex-col space-y-6">
+            <div class="flex items-center justify-between">
+                <a class="flex items-center space-x-2 font-bold" href="#">
+                    <span>Uni-Vault</span>
+                </a>
+                <button class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" onclick="toggleMobileMenu()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+                    <span class="sr-only">Close</span>
+                </button>
+            </div>
+            ${sidebarContent}
+        </div>
+    </div>
+
     <script>
+      // Mobile Menu Logic
+      function toggleMobileMenu() {
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('mobile-drawer-overlay');
+        const isOpen = drawer.classList.contains('hidden');
+        
+        if (isOpen) {
+            drawer.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+            // Small delay to allow display:block to apply before animating
+            requestAnimationFrame(() => {
+                drawer.setAttribute('data-state', 'open');
+                overlay.setAttribute('data-state', 'open');
+            });
+        } else {
+            drawer.setAttribute('data-state', 'closed');
+            overlay.setAttribute('data-state', 'closed');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+      }
+      
+      document.getElementById('mobile-menu-trigger')?.addEventListener('click', toggleMobileMenu);
+
+      // Filtering Logic
+      function filterFiles(category, subject) {
+          const cards = document.querySelectorAll('.file-card');
+          const buttons = document.querySelectorAll('.filter-btn');
+          
+          // Update active state
+          buttons.forEach(btn => {
+              const btnCat = btn.getAttribute('data-cat');
+              const btnSub = btn.getAttribute('data-sub');
+              
+              // Simple strict match
+              if (btnCat === category && btnSub === subject) {
+                  btn.classList.add('bg-secondary', 'text-secondary-foreground');
+                  btn.classList.remove('text-muted-foreground', 'hover:bg-zinc-100', 'dark:hover:bg-zinc-800');
+              } else {
+                  btn.classList.remove('bg-secondary', 'text-secondary-foreground');
+                  btn.classList.add('text-muted-foreground', 'hover:bg-zinc-100', 'dark:hover:bg-zinc-800');
+              }
+          });
+
+          // Filter Cards
+          let visibleCount = 0;
+          cards.forEach(card => {
+              const cardCat = card.getAttribute('data-cat');
+              const cardSub = card.getAttribute('data-sub');
+              
+              const match = (category === 'all' && subject === 'all') ||
+                            (category === cardCat && subject === cardSub);
+              
+              if (match) {
+                  card.style.display = '';
+                  visibleCount++;
+              } else {
+                  card.style.display = 'none';
+              }
+          });
+          
+          // Close mobile menu if open
+           const drawer = document.getElementById('mobile-drawer');
+           if (drawer && !drawer.classList.contains('hidden')) {
+               toggleMobileMenu();
+           }
+      }
+
       // Search Logic
       const searchInput = document.getElementById('search-input');
       
       if (searchInput) {
           searchInput.addEventListener('input', (e) => {
               const term = e.target.value.toLowerCase();
-              const fileCards = document.querySelectorAll('.group.relative'); 
+              const fileCards = document.querySelectorAll('.file-card'); 
               
               fileCards.forEach(card => {
                   const name = card.querySelector('h3') ? card.querySelector('h3').textContent.toLowerCase() : '';
                   const subject = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
                   
                   if (name.includes(term) || subject.includes(term)) {
-                      card.parentElement.style.display = ''; 
                       card.style.display = '';
                   } else {
                       card.style.display = 'none';
