@@ -15,28 +15,21 @@ export const Header = (props: { user: any }) => html`
                      <!-- Search could go here globally later -->
                 </div>
                 <!-- User Nav -->
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                     <div class="flex flex-col text-right hidden sm:block">
                         <span class="text-sm font-medium">${props.user.name}</span>
                         <span class="text-xs text-muted-foreground capitalize">${props.user.role}</span>
                     </div>
-                    <div class="relative inline-block text-left group">
-                         <button class="flex items-center gap-2 rounded-full bg-secondary p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                             <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                                 ${props.user.name.charAt(0).toUpperCase()}
-                             </div>
-                         </button>
-                         <!-- Dropdown Menu -->
-                         <div class="absolute right-0 mt-2 w-56 origin-top-right rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-80 hidden group-hover:block focus-within:block z-50" role="menu">
-                            <div class="p-2 bg-popover rounded-md border shadow-md">
-                                <p class="text-xs font-medium text-muted-foreground px-2 py-1.5">${props.user.email}</p>
-                                <div class="h-px bg-muted my-1"></div>
-                                <button id="logout-btn" class="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-destructive/10 hover:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50 font-medium text-red-500">
-                                    Log out
-                                </button>
-                            </div>
-                         </div>
+                    
+                    <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold border border-border" title="${props.user.email}">
+                         ${props.user.name.charAt(0).toUpperCase()}
                     </div>
+
+                    <div class="h-6 w-px bg-border mx-1 hidden sm:block"></div>
+
+                    <button id="logout-btn" class="flex items-center justify-center h-9 w-9 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Log out">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    </button>
                 </div>
             </div>
         </div>
