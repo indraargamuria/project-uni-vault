@@ -148,6 +148,20 @@ app.get('/dashboard', async (c) => {
     pendingUsers = await db.select().from(user).where(eq(user.status, 'pending')).all()
   }
 
+  // Activity Feed
+  const activityFeed = await db.select({
+    id: activityLogs.id,
+    action: activityLogs.action,
+    fileName: activityLogs.fileName,
+    createdAt: activityLogs.createdAt,
+    userName: user.name
+  })
+    .from(activityLogs)
+    .leftJoin(user, eq(activityLogs.userId, user.id))
+    .orderBy(desc(activityLogs.createdAt))
+    .limit(10)
+    .all()
+
   return c.render(Dashboard({
     user: session.user,
     files: allFiles,
@@ -158,7 +172,8 @@ app.get('/dashboard', async (c) => {
       userActivity
     },
     navigation,
-    isApproved
+    isApproved,
+    activityFeed
   }), { title: 'Dashboard' })
 })
 

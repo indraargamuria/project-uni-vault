@@ -11,15 +11,16 @@ export const Dashboard = (props: {
         userActivity: number
     },
     navigation: Record<string, string[]>,
-    isApproved: boolean
+    isApproved: boolean,
+    activityFeed: any[]
 }) => {
     const isAdmin = props.user.role === 'admin';
-    const { isApproved } = props;
+    const { isApproved, activityFeed } = props;
 
     return html`
     <div class="flex flex-col md:flex-row gap-8 min-h-[calc(100vh-100px)]">
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 flex-shrink-0 space-y-6">
+      <aside class="w-full md:w-64 flex-shrink-0 space-y-6 hidden md:block">
          <!-- Mobile Toggle could go here, omitting for MVP simplicity -->
          <div class="space-y-4">
              <div class="py-2">
@@ -47,6 +48,24 @@ export const Dashboard = (props: {
 
       <!-- Main Content -->
       <main class="flex-1 space-y-8">
+      
+      <!-- Breadcrumb -->
+      <nav class="flex text-sm text-muted-foreground" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+             <a href="#" class="inline-flex items-center hover:text-foreground">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                Vault
+             </a>
+            </li>
+            <li>
+             <div class="flex items-center">
+                 <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                 <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Dashboard</span>
+             </div>
+            </li>
+        </ol>
+      </nav>
       
       <!-- Account Status Banner -->
       ${!isApproved ? html`
@@ -138,12 +157,23 @@ export const Dashboard = (props: {
         </div>
       ` : ''}
 
-      <!-- File List -->
-      <div class="rounded-xl border bg-card text-card-foreground shadow">
-        <div class="flex flex-col space-y-1.5 p-6">
-          <h3 class="font-semibold leading-none tracking-tight">Files</h3>
-          <p class="text-sm text-muted-foreground">Access your learning materials.</p>
-        </div>
+      <!-- File List & Activity Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Files (3 cols) -->
+        <div class="lg:col-span-3 rounded-xl border bg-card text-card-foreground shadow overflow-hidden">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
+                <div class="space-y-1">
+                    <h3 class="font-semibold leading-none tracking-tight">Files</h3>
+                    <p class="text-sm text-muted-foreground">Access your learning materials.</p>
+                </div>
+                <div class="w-full sm:w-auto flex items-center gap-2">
+                    <div class="relative w-full sm:w-[250px]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input id="search-input" type="search" placeholder="Search files..." class="flex h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                    </div>
+                </div>
+            </div>
         <div class="flex items-center p-6 pt-0">
             ${isApproved ? html`
              <button onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ml-auto">
@@ -199,6 +229,9 @@ export const Dashboard = (props: {
                   </div>
                 `
     })}
+            <div id="empty-search-state" class="hidden col-span-full flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+               <p>No matches found.</p>
+            </div>
             </div>
           ` : html`
             <div class="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
@@ -207,9 +240,91 @@ export const Dashboard = (props: {
             </div>
           `}
         </div>
+       </div>
+     </div>
+
+     <!-- Activity Feed (1 col) -->
+      <div class="lg:col-span-1 space-y-4">
+         <div class="rounded-xl border bg-card text-card-foreground shadow h-full">
+            <div class="flex flex-col space-y-1.5 p-6">
+                <h3 class="font-semibold leading-none tracking-tight">Recent Activity</h3>
+                <p class="text-sm text-muted-foreground">Latest updates in the vault.</p>
+            </div>
+            <div class="p-6 pt-0">
+                <div class="space-y-4">
+                    ${activityFeed && activityFeed.length > 0 ? activityFeed.map(log => {
+        const isUpload = log.action === 'upload';
+        return html`
+                            <div class="flex items-start gap-4">
+                                <span class="relative flex h-2 w-2 shrink-0 overflow-hidden rounded-full mt-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isUpload ? 'bg-blue-400 opacity-75' : 'bg-green-400 opacity-75'}"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 ${isUpload ? 'bg-blue-500' : 'bg-green-500'}"></span>
+                                </span>
+                                <div class="space-y-1">
+                                    <p class="text-sm font-medium leading-none">
+                                        <span class="font-semibold">${log.userName || 'Someone'}</span>
+                                        ${isUpload ? 'uploaded' : 'downloaded'}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground line-clamp-1" title="${log.fileName}">${log.fileName}</p>
+                                    <p class="text-[10px] text-muted-foreground">${new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                            </div>
+                        `
+    }) : html`<p class="text-sm text-muted-foreground">No recent activity.</p>`}
+                </div>
+            </div>
+         </div>
       </div>
+
+     </div>
      </main>
     </div>
+
+    <script>
+      // Search Logic
+      const searchInput = document.getElementById('search-input');
+      // We need to target the card wrappers. The file cards are inside the grid.
+      // selector: .grid > .group
+      
+      searchInput.addEventListener('input', (e) => {
+          const term = e.target.value.toLowerCase();
+          const fileCards = document.querySelectorAll('.group.relative'); 
+          
+          fileCards.forEach(card => {
+              const name = card.querySelector('h3').textContent.toLowerCase();
+              const subject = card.querySelector('p').textContent.toLowerCase(); 
+              
+              if (name.includes(term) || subject.includes(term)) {
+                  card.parentElement.style.display = '';
+                  card.style.display = '';
+// ... Inside the map loop
+// Actually better to add it after the map expression but before the closing div of the grid.
+// Let's modify the map block to include it or append it.
+
+// Replacement strategy: Locate the end of the map.
+// The code has:
+// ...
+// })}
+// </div>
+
+// I will target the end of the map and insert the empty state div.
+// Then update the script.
+
+// Let's replace the script block first as it is easier to target.
+              } else {
+                  card.style.display = 'none';
+              }
+          });
+          
+          const visibleCount = Array.from(fileCards).filter(c => c.style.display !== 'none').length;
+          const emptyState = document.getElementById('empty-search-state');
+          if (emptyState) {
+              emptyState.classList.toggle('hidden', visibleCount > 0);
+          }
+      });
+      
+      // Initial check (in case we want to support pre-filtering later, though unnecessary now)
+    </script>
 
     <!-- Upload Modal -->
     <div id="upload-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -251,6 +366,26 @@ export const Dashboard = (props: {
     </div>
 
     <script>
+      // Search Logic
+      const searchInput = document.getElementById('search-input');
+      const fileCards = document.querySelectorAll('.group.relative'); // Select file cards
+      
+      searchInput.addEventListener('input', (e) => {
+          const term = e.target.value.toLowerCase();
+          
+          fileCards.forEach(card => {
+              const name = card.querySelector('h3').textContent.toLowerCase();
+              const subject = card.querySelector('p').textContent.toLowerCase(); // Subject is in the first p tag under h3
+              
+              if (name.includes(term) || subject.includes(term)) {
+                  card.parentElement.classList.remove('hidden'); // Ensure parent wrapper is visible if filtering logic hides entries (grid items are usually direct children though)
+                  card.style.display = '';
+              } else {
+                  card.style.display = 'none';
+              }
+          });
+      });
+
       // Upload Form Handler
       document.getElementById('upload-form').addEventListener('submit', async (e) => {
         e.preventDefault();
