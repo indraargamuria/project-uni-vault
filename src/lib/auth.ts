@@ -26,6 +26,7 @@ export const getAuth = (env: any) => {
                 role: { type: "string", defaultValue: "student" }
             }
         },
+        baseURL: env.BETTER_AUTH_URL,
         // Adding admin approval logic? No, just fields here. Middleware handles approval.
     });
 };

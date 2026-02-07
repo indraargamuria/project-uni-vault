@@ -54,11 +54,11 @@ export const Header = (props: { user: any }) => html`
         
             // 3. FORCE the redirect. 
             // This stops the 'Unexpected end of JSON' from blocking the UI
-            window.location.replace("/login");
+            window.location.replace("/login?loggedOut=true");
           } catch (error) {
             console.error("Logout error:", error);
             // If the server errors out, we still want the user out of the dashboard
-            window.location.href = "/login";
+            window.location.href = "/login?loggedOut=true";
           }
         };
 

@@ -92,7 +92,10 @@ app.get('/login', async (c) => {
   const session = await auth.api.getSession({
     headers: c.req.raw.headers
   })
-  if (session) {
+
+  const isLoggedOut = c.req.query('loggedOut') === 'true'
+
+  if (session && !isLoggedOut) {
     return c.redirect('/dashboard')
   }
   return c.render(Login(), { title: 'Login' })
@@ -103,7 +106,10 @@ app.get('/register', async (c) => {
   const session = await auth.api.getSession({
     headers: c.req.raw.headers
   })
-  if (session) {
+
+  const isLoggedOut = c.req.query('loggedOut') === 'true'
+
+  if (session && !isLoggedOut) {
     return c.redirect('/dashboard')
   }
   return c.render(Register(), { title: 'Register' })
