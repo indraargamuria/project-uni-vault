@@ -157,37 +157,48 @@ export const Dashboard = (props: {
         </div>
         <div class="p-6 pt-0">
           ${props.files && props.files.length > 0 ? html`
-            <div class="relative w-full overflow-auto">
-              <table class="w-full caption-bottom text-sm">
-                <thead class="[&_tr]:border-b">
-                  <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Name</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Subject</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Category</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Type</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Size</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">Uploaded By</th>
-                    <th class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-right">Download</th>
-                  </tr>
-                </thead>
-                <tbody class="[&_tr:last-child]:border-0">
-                  ${props.files.map(f => html`
-                    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td class="p-2 align-middle font-medium">${f.name}</td>
-                      <td class="p-2 align-middle text-muted-foreground">${f.subject || '-'}</td>
-                      <td class="p-2 align-middle"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">${f.category || 'General'}</span></td>
-                      <td class="p-2 align-middle text-muted-foreground">${f.type}</td>
-                      <td class="p-2 align-middle text-muted-foreground">${(f.size / 1024).toFixed(1)} KB</td>
-                      <td class="p-2 align-middle text-muted-foreground">${f.uploadedBy || 'Unknown'}</td>
-                      <td class="p-2 align-middle text-right">
-                        <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              ${props.files.map(f => {
+        let icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-blue-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+        let bgColor = 'bg-blue-50 dark:bg-blue-950/20';
+
+        if (f.type.includes('image')) {
+            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-purple-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+            bgColor = 'bg-purple-50 dark:bg-purple-950/20';
+        } else if (f.type.includes('pdf')) {
+            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M5 17a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2z"/><line x1="9" x2="9" y1="17" y2="21"/></svg>`;
+            bgColor = 'bg-red-50 dark:bg-red-950/20';
+        } else if (f.type.includes('sheet') || f.type.includes('excel') || f.type.includes('csv')) {
+            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" x2="16" y1="13" y2="13"/><line x1="8" x2="16" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+            bgColor = 'bg-green-50 dark:bg-green-950/20';
+        }
+
+        return html`
+                  <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+                    <div class="flex flex-col space-y-1.5 p-6 pb-2">
+                        <div class="flex items-center justify-between mb-2">
+                             <div class="${bgColor} p-2 rounded-lg">
+                                ${icon}
+                             </div>
+                             <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                                ${f.category || 'General'}
+                             </span>
+                        </div>
+                        <h3 class="font-semibold tracking-tight text-lg line-clamp-1" title="${f.name}">${f.name}</h3>
+                        <p class="text-xs text-muted-foreground">${f.subject || 'No Subject'}</p>
+                    </div>
+                     <div class="p-6 pt-2">
+                        <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                            <span>${(f.size / 1024).toFixed(1)} KB</span>
+                            <span>${new Date(f.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 w-full">
+                           Download
                         </a>
-                      </td>
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
+                     </div>
+                  </div>
+                `
+    })}
             </div>
           ` : html`
             <div class="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
@@ -195,10 +206,6 @@ export const Dashboard = (props: {
                <p>No files in the vault.</p>
             </div>
           `}
-        </div>
-      </div>
-    </div>
-
         </div>
       </div>
      </main>
