@@ -1,30 +1,28 @@
 # Project: uni-vault
-# Task: P3_Task1 - User Identity & Smart Redirects
+# Task: P3_Task1_Fix - Header Consolidation & Logout Repair
 # Model Setting: Gemini 3 Pro (High)
 
-## 1. Top Bar & Identity (shadcn/ui)
-- Create a `UserNav` component in the header.
-- Display the User's Name and Role (Admin/Student).
-- Implement a "Logout" button that clears the session and redirects to `/login`.
+## 1. Header Consolidation (Merge Headers)
+- **Identify Duplicate Headers:** Look at `layout.tsx` and `Dashboard.tsx` (or similar). Remove the redundant top bars.
+- **Unified Header:** Create a single `Header` component at the top of the app that contains:
+    - **Left:** App Logo ('Uni-Vault') and a Mobile Menu trigger (Hamburger).
+    - **Right:** User Identity (Name & Role) and the Logout Button.
+- **Style:** Sticky position, backdrop-blur, border-b Zinc-200.
 
-## 2. Auth Guards & Auto-Redirects
-- **Middleware Update:**
-    - If a user with a valid session tries to access `/login` or `/register`, auto-redirect to `/dashboard`.
-    - If an unauthenticated user tries to access `/dashboard`, auto-redirect to `/login`.
-- Ensure this logic works smoothly without "infinite redirect" loops.
+## 2. Logout Logic Repair
+- **API Call:** Ensure the logout button calls `await authClient.signOut()`.
+- **Hard Redirect:** On success, use `window.location.href = '/login'` instead of a soft router link to ensure all states are wiped.
+- **Manual Cookie Clear (Optional):** If `signOut()` fails, manually clear the session cookies to force the user out.
 
-## 3. Register Page Implementation
-- Create the `register.tsx` file (which was missing).
-- Design it to match the Login page (shadcn Card).
-- Fields: Name, Email, Password, Confirm Password.
-- On success: Show a "Pending Approval" message and a link back to Login.
+## 3. Auth Guard Refinement
+- Ensure that the `/login` page **does not** show the Header. The Header should only appear once a user is authenticated and on the `/dashboard`.
 
 ## 4. Automation & Cleanup
-- Ensure the header is fixed to the top of the screen (`sticky top-0`).
+- Check for "Register Page Not Found" again—ensure the route is exported correctly in `index.ts`.
 - **Git Finalization:**
     - `git add .`
-    - `git commit -m "feat(p3-t1): fix register page, add topbar identity, and implement auth redirects"`
+    - `git commit -m "fix(p3-t1): consolidate headers and fix logout functionality"`
     - `git push`
 
 ## 5. Documentation
-- Log the new auth flow logic in `agent_log/Phase3_Task1.md`.
+- Verify the header looks correct on mobile and desktop in `agent_log/Phase3_Task1_Fix.md`.

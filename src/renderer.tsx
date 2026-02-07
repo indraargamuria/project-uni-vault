@@ -66,19 +66,11 @@ export const renderer = jsxRenderer(({ children, title }) => {
         </script>
       </head>
       <body class="bg-background text-foreground antialiased min-h-screen flex flex-col">
-        <nav class="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-           <div class="container flex h-14 items-center px-4 max-w-screen-xl mx-auto justify-between">
-              <a class="block font-bold tracking-tight text-xl text-primary" href="/">Uni-Vault</a>
-              <div class="flex items-center gap-4">
-                  ${title !== 'Login' ?
-            html`<a href="/dashboard" class="text-sm font-medium transition-colors hover:text-primary">Dashboard</a>` : ''
-        }
-              </div>
-           </div>
-        </nav>
-        <main class="flex-1 container py-6 mx-auto max-w-screen-xl px-4">
-          ${children}
-        </main>
+        ${title === 'Dashboard' ? children : html`
+          <main class="flex-1 container py-6 mx-auto max-w-screen-xl px-4">
+            ${children}
+          </main>
+        `}
       </body>
     </html>
   `
