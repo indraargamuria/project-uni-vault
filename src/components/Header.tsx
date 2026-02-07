@@ -44,8 +44,12 @@ export const Header = (props: { user: any }) => html`
       <script>
         document.getElementById('logout-btn').addEventListener('click', async () => {
             try {
-                const res = await fetch('/api/auth/sign-out', { method: 'POST' });
-                // We redirect regardless of success to ensure user leaves the protected page
+                await fetch('/api/auth/sign-out', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
                 window.location.href = '/login';
             } catch (e) {
                 console.error(e);
