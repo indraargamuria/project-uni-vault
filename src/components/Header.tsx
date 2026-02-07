@@ -51,8 +51,15 @@ export const Header = (props: { user: any }) => html`
             // 2. Clear local storage to ensure no ghost sessions remain
             localStorage.clear();
             sessionStorage.clear();
+
+            // 3. Manually clear cookies as a backup
+            document.cookie.split(";").forEach((c) => {
+              document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
         
-            // 3. FORCE the redirect. 
+            // 4. FORCE the redirect. 
             // This stops the 'Unexpected end of JSON' from blocking the UI
             window.location.replace("/login?loggedOut=true");
           } catch (error) {
