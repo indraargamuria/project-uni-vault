@@ -24,6 +24,18 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
   return getAuth(c.env).handler(c.req.raw)
 })
 
+app.get("/force-logout", (c) => {
+  // Clear the better-auth session cookie manually
+  // We set it to a date in the past to force the browser to delete it
+  c.header(
+    "Set-Cookie",
+    "better-auth.session_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+  );
+
+  // Redirect to login with a cache-buster to ensure the middleware sees the change
+  return c.redirect("/login?v=" + Date.now());
+});
+
 app.use('/api/*', async (c, next) => {
   const auth = getAuth(c.env)
   const session = await auth.api.getSession({

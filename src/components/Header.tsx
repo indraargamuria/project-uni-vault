@@ -42,31 +42,9 @@ export const Header = (props: { user: any }) => html`
         </div>
       </header>
       <script>
-        const handleLogout = async () => {
-          try {
-            // 1. Call the signout endpoint
-            // Equivalent to authClient.signOut()
-            await fetch('/api/auth/sign-out', { method: 'POST' });
-            
-            // 2. Clear local storage to ensure no ghost sessions remain
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // 3. Manually clear cookies as a backup
-            document.cookie.split(";").forEach((c) => {
-              document.cookie = c
-                .replace(/^ +/, "")
-                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-        
-            // 4. FORCE the redirect. 
-            // This stops the 'Unexpected end of JSON' from blocking the UI
-            window.location.replace("/login?loggedOut=true");
-          } catch (error) {
-            console.error("Logout error:", error);
-            // If the server errors out, we still want the user out of the dashboard
-            window.location.href = "/login?loggedOut=true";
-          }
+        const handleLogout = () => {
+          // Forget the complex async logic, just hit the "Kill Switch" route
+          window.location.href = "/force-logout";
         };
 
         document.getElementById('logout-btn').addEventListener('click', handleLogout);
