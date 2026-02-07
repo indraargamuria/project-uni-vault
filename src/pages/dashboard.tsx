@@ -212,45 +212,86 @@ export const Dashboard = (props: {
               ${props.files && props.files.length > 0 ? html`
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   ${props.files.map(f => {
-        let icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-blue-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`;
-        let bgColor = 'bg-blue-50 dark:bg-blue-950/20';
+        let preview;
+        const isImage = f.type.includes('image');
+        const isPdf = f.type.includes('pdf');
+        const isSheet = f.type.includes('sheet') || f.type.includes('excel') || f.type.includes('csv');
+        const isDoc = f.type.includes('word') || f.type.includes('document');
+        const isPpt = f.type.includes('presentation') || f.type.includes('powerpoint');
 
-        if (f.type.includes('image')) {
-            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-purple-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
-            bgColor = 'bg-purple-50 dark:bg-purple-950/20';
-        } else if (f.type.includes('pdf')) {
-            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M5 17a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2z"/><line x1="9" x2="9" y1="17" y2="21"/></svg>`;
-            bgColor = 'bg-red-50 dark:bg-red-950/20';
-        } else if (f.type.includes('sheet') || f.type.includes('excel') || f.type.includes('csv')) {
-            icon = html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" x2="16" y1="13" y2="13"/><line x1="8" x2="16" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
-            bgColor = 'bg-green-50 dark:bg-green-950/20';
+        if (isImage) {
+            preview = html`
+                <div class="aspect-video w-full overflow-hidden rounded-t-lg bg-zinc-100 dark:bg-zinc-900 border-b relative group-hover:opacity-90 transition-opacity">
+                    <img src="/api/files/download/${f.id}?preview=true" alt="${f.name}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                </div>
+            `;
+        } else if (isPdf) {
+            preview = html`
+                <div class="aspect-video w-full flex flex-col items-center justify-center bg-red-50 dark:bg-red-950/20 text-red-500 rounded-t-lg border-b p-4 text-center group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-colors">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M5 17a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2z"/><line x1="9" x2="9" y1="17" y2="21"/></svg>
+                     <span class="text-[10px] font-semibold line-clamp-2 uppercase tracking-wide">PDF Document</span>
+                </div>
+            `;
+        } else {
+            // Default / Office Icons
+            let iconColor = 'text-blue-500';
+            let bgColor = 'bg-blue-50 dark:bg-blue-950/20';
+            let label = 'Document';
+
+            if (isSheet) {
+                iconColor = 'text-green-500';
+                bgColor = 'bg-green-50 dark:bg-green-950/20';
+                label = 'Spreadsheet';
+            } else if (isPpt) {
+                iconColor = 'text-orange-500';
+                bgColor = 'bg-orange-50 dark:bg-orange-950/20';
+                label = 'Presentation';
+            } else if (isDoc) {
+                iconColor = 'text-blue-600';
+                bgColor = 'bg-blue-50 dark:bg-blue-900/20';
+                label = 'Word Doc';
+            }
+
+            preview = html`
+                <div class="aspect-video w-full flex flex-col items-center justify-center ${bgColor} ${iconColor} rounded-t-lg border-b p-4 group-hover:bg-opacity-80 transition-colors">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                     <span class="text-[10px] font-semibold uppercase tracking-wide">${label}</span>
+                </div>
+            `;
         }
 
+        const ext = f.name.includes('.') ? f.name.split('.').pop().toUpperCase() : 'FILE';
+
         return html`
-                        <div class="group relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer file-card" data-cat="${f.category || 'General'}" data-sub="${f.subject || 'Miscellaneous'}">
-                            <div class="flex flex-col space-y-1.5 p-6 pb-2">
-                                <div class="flex items-center justify-between mb-2">
-                                        <div class="${bgColor} p-2 rounded-lg">
-                                        ${icon}
-                                        </div>
-                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                                        ${f.category || 'General'}
-                                        </span>
-                                </div>
-                                <h3 class="font-semibold tracking-tight text-lg line-clamp-1" title="${f.name}">${f.name}</h3>
-                                <p class="text-xs text-muted-foreground">${f.subject || 'No Subject'}</p>
-                            </div>
-                                <div class="p-6 pt-2">
-                                <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                                    <span>${(f.size / 1024).toFixed(1)} KB</span>
-                                    <span>${new Date(f.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 w-full">
-                                    Download
-                                </a>
-                                </div>
-                        </div>
-                    `
+            <div class="group relative flex flex-col rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer file-card h-full" data-cat="${f.category || 'General'}" data-sub="${f.subject || 'Miscellaneous'}">
+                <!-- Badge -->
+                <div class="absolute top-2 right-2 z-10">
+                    <span class="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-background/90 backdrop-blur text-foreground shadow-sm">
+                        ${ext}
+                    </span>
+                </div>
+                
+                ${preview}
+
+                <div class="flex flex-col flex-1 p-4 space-y-2">
+                    <div>
+                       <h3 class="font-semibold tracking-tight text-sm line-clamp-1" title="${f.name}">${f.name}</h3>
+                       <div class="flex items-center gap-2 mt-1">
+                          <span class="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-sm line-clamp-1">${f.subject || 'No Subject'}</span>
+                       </div>
+                    </div>
+                    
+                    <div class="mt-auto pt-2 flex items-center justify-between text-xs text-muted-foreground">
+                        <span>${(f.size / 1024 < 1024) ? (f.size / 1024).toFixed(1) + ' KB' : (f.size / (1024 * 1024)).toFixed(1) + ' MB'}</span>
+                        <span>${new Date(f.createdAt).toLocaleDateString()}</span>
+                    </div>
+
+                    <a href="/api/files/download/${f.id}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-8 px-3 w-full mt-2">
+                        Download
+                    </a>
+                </div>
+            </div>
+        `;
     })}
                 </div>
                 <div id="empty-search-state" class="hidden flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
@@ -315,7 +356,7 @@ export const Dashboard = (props: {
             <form id="upload-form" class="space-y-4">
                 <div class="grid gap-2">
                     <label class="text-sm font-medium leading-none" for="file-upload">File</label>
-                    <input id="file-upload" type="file" name="file" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                    <input id="file-upload" type="file" name="file" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.png,.webp" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 </div>
                 <div class="grid gap-2">
                     <label class="text-sm font-medium leading-none" for="subject">Subject</label>
@@ -464,6 +505,13 @@ export const Dashboard = (props: {
           uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
+            const file = formData.get('file');
+
+            // 10MB Limit
+            if (file && file.size > 10 * 1024 * 1024) {
+                alert('File is too large! Maximum limit is 10MB.');
+                return;
+            }
             
             try {
                 const res = await fetch('/api/files/upload', {

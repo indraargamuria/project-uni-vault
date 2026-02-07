@@ -327,7 +327,9 @@ app.get('/api/files/download/:fileId', async (c) => {
   const headers = new Headers()
   headers.set('etag', object.httpEtag)
   if (object.httpMetadata?.contentType) headers.set('content-type', object.httpMetadata.contentType)
-  headers.set('content-disposition', `attachment; filename="${fileRecord.name}"`)
+  const isInline = c.req.query('preview') === 'true'
+  const disposition = isInline ? 'inline' : 'attachment'
+  headers.set('content-disposition', `${disposition}; filename="${fileRecord.name}"`)
 
   return new Response(object.body, {
     headers
